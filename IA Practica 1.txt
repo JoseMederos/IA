@@ -1,0 +1,11 @@
+IA Practica 1
+    - Se debe poder especificar el nodo inicial y el destino.
+    - Nodo Inspeccionado: AL que le pregunto si es el META o no, y si no se generan sus sucesores.
+    - Al escoger un sucesor, coger el de MENOR indice a MAYOR indice.
+    - Los nodos se peuden repetir mientras no esten en la misma rama. 
+
+    0   1   1   0   0
+    1   0   0   2.2 0
+    1   0   0   1   0
+    0   2.2 1   0   0
+    0   0   0   0   0
