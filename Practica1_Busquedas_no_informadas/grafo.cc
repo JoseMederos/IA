@@ -31,6 +31,40 @@ std::vector<std::vector<int>> Grafo::GetCostes() const {
   return costes_;
 }
 
+void showq(std::queue<int> gq)
+{
+    std::queue<int> g = gq;
+    while (!g.empty()) {
+        std::cout << '\t' << g.front();
+        g.pop();
+    }
+    std::cout << '\n';
+}
+
+bool Grafo::BFS_search(int start, int goal, int& coste_total) {
+  std::stack<int> path, generados, inspeccionados;
+  std::queue<int> q;
+  q.push(start);
+  std::vector<bool> visited(vertices_, 0);
+  visited[start - 1] = 1;
+  int current;
+  
+  while (q.back() != goal) {
+    current = q.front();
+    std::cout << current << std::endl;
+    q.pop();
+
+    for (int i = 0; i < vertices_; i++) {
+      if (costes_[current - 1][i] != 0 && !visited[i]) {
+        q.push(i + 1);
+        visited[i] = 1;
+      }
+    }
+  }
+  return true;
+}
+
+
 bool Grafo::DFS_search(int start, int goal, int& coste_total) {
   std::stack<int> path, generados, inspeccionados;
   std::vector<bool> visited(vertices_, 0);
@@ -65,28 +99,38 @@ bool Grafo::DFS_search(int start, int goal, int& coste_total) {
 
 bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion) {
   int current = path.top(); // current  = 6
+  //std::cout << "Current: " << current << std::endl;
 
   PrintProgress(path, generados, inspeccionados, iteracion);
   iteracion++;
   if (current == goal){
     return true;
   }
+  
+  for (int j = 0; j < vertices_; j++) {
+    if (costes_[current - 1][j] && !visited[j]) {
+      generados.push(j + 1);
+    }
+  }
 
+      inspeccionados.push(path.top());
   for (int i = 0; i < vertices_; i++) {
     if (costes_[current - 1][i] != 0 && !visited[i]) {
       visited[i] = 1;
-      generados.push(i + 1);
-      //std::cout << "Current: " << i + 1 << std::endl;
-      inspeccionados.push(path.top());
+      //generados.push(i + 1);
+      //std::cout << "-> generados push: " << i + 1 << std::endl;
+      //std::cout << "-> inspeccionados push: " << path.top() << std::endl;
       path.push(i + 1);
+      //std::cout << "-> path push: " << i + 1 << std::endl;
       if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion)) {
         coste_total += costes_[current - 1][i];
         return true;
       } else {
         visited[i] = 0;
-        //std::cout << "Pop: " << path.top() << std::endl;
+        //std::cout << "-> Pop: " << path.top() << std::endl;
         path.pop();
-        inspeccionados.pop();
+        
+        //inspeccionados.pop();
       }
     }
   }
@@ -110,10 +154,9 @@ void Grafo::PrintProgress(const std::stack<int>& path, const std::stack<int>& ge
       if (i != 0) std::cout << ", ";
     }
   std::cout << std::endl;
-
   // inspeccionados = path?? si no en que momento se agrega el nodo final? o no se agrega?
 
-  temp_path = path;
+  temp_path = inspeccionados;
   std::vector<int> path_elements;
   while (!temp_path.empty()) {
     path_elements.push_back(temp_path.top());
