@@ -4,6 +4,7 @@
 int main(int arc, char* argv[]) {
   std::string ficheroEntrada = argv[1];
   int origen, destino;
+  
   std::cout << "Indique el nodo origen: ";
   std::cin >> origen;
   std::cout << "Indique el nodo destino: ";
@@ -12,7 +13,7 @@ int main(int arc, char* argv[]) {
   Grafo grafo;
   int coste_total = 0;
   grafo.AddCosts(ficheroEntrada);
-
+  grafo.Print();
   grafo.DFS_search(origen, destino, coste_total);
   return 0;
 }
