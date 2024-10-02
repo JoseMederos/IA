@@ -15,14 +15,14 @@ class Grafo {
       costes_.resize(vertices, std::vector<int>(vertices, 0));
     }
 
-    // void Print() {
-    //   for (int i = 0; i < costes_.size(); i++) {
-    //     for (int j = 0; j < costes_.size(); j++) {
-    //       std::cout << costes_[i][j] << " ";
-    //     }
-    //     std::cout << std::endl;
-    //   }
-    // }
+    void Print() {
+      for (int i = 0; i < costes_.size(); i++) {
+        for (int j = 0; j < costes_.size(); j++) {
+          std::cout << costes_[i][j] << " ";
+        }
+        std::cout << std::endl;
+      }
+    }
     void AddCosts(std::string filename);
     int GetVertices() const;
     std::vector<std::vector<int>> GetCostes() const;
