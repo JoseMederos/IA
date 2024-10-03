@@ -12,13 +12,16 @@ int main(int arc, char* argv[]) {
   std::cin >> destino;
   std::cout << std::endl;
   Grafo grafo;
-  int coste_total = 0;
-  grafo.AddCosts(ficheroEntrada);
-  grafo.Print();
+  std::ofstream output;
+  output.open("output.txt");
+  grafo.AddCosts(ficheroEntrada, output);
+  output << "Vertice origen: " << origen << std::endl;
+  output << "Vertice destino: " << destino << std::endl;
+  //grafo.Print();
   if (tipo == 1) {
-    grafo.BFS_search(origen, destino, coste_total);
+    grafo.BFS_search(origen, destino, output);
   } else {
-    grafo.DFS_search(origen, destino, coste_total);
+    grafo.DFS_search(origen, destino, output);
   }
   return 0;
 }

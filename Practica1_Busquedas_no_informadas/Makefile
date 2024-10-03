@@ -5,7 +5,7 @@ LDFLAGS =                                                            # The linke
 # The all target builds all of the programs handled by the makefile.
 all: busqueda
 
-busqueda: grafo.o main.cc
+busqueda: nodo.o grafo.o main.cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Indicate that the all and clean targets do not

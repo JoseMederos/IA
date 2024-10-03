@@ -1,6 +1,7 @@
 #include "grafo.h"
+#include "nodo.h"
 
-void Grafo::AddCosts(std::string filename) {
+void Grafo::AddCosts(std::string filename, std::ostream& output) {
   std::fstream input;
   input.open(filename);
   double lineread;
@@ -8,7 +9,7 @@ void Grafo::AddCosts(std::string filename) {
   input >> vertices_;
   int vertices = vertices_;
   costes_.resize(vertices, std::vector<int>(vertices, 0));
-  std::cout << "Número de vertices del grafo: " << vertices << std::endl;
+  output << "Número de vertices del grafo: " << vertices << std::endl;
   for (int i = 0; i < vertices; i++) {
     for (int j = i + 1; j < vertices; j++) {
       input >> lineread;
@@ -20,7 +21,7 @@ void Grafo::AddCosts(std::string filename) {
       }
     }
   }
-  std::cout << "Número de aristas del grafo: " << aristas << std::endl;
+  output << "Número de aristas del grafo: " << aristas << std::endl;
 }
 
 int Grafo::GetVertices() const {
@@ -31,41 +32,69 @@ std::vector<std::vector<int>> Grafo::GetCostes() const {
   return costes_;
 }
 
-void showq(std::queue<int> gq)
-{
-    std::queue<int> g = gq;
-    while (!g.empty()) {
-        std::cout << '\t' << g.front();
-        g.pop();
-    }
-    std::cout << '\n';
+void showq(std::queue<Nodo*> gq){
+  std::queue<Nodo*> g = gq;
+  while (!g.empty()) {
+    std::cout << '\t' << g.front()->GetIndice();
+    g.pop();
+  }
+  std::cout << '\n';
 }
 
-bool Grafo::BFS_search(int start, int goal, int& coste_total) {
+bool Grafo::BFS_search(int start, int goal, std::ofstream& output) {
+  int coste_total = 0;
   std::stack<int> path, generados, inspeccionados;
-  std::queue<int> q;
-  q.push(start);
-  std::vector<bool> visited(vertices_, 0);
-  visited[start - 1] = 1;
-  int current;
+  std::queue<Nodo*> q;
+  Nodo* root = new Nodo(start, nullptr);
+  q.push(root);
+  int iteracion = 1;
+  generados.push(start);
   
-  while (q.back() != goal) {
-    current = q.front();
-    std::cout << current << std::endl;
+  while (!q.empty()) {
+    Nodo* current = q.front();
+    PrintProgress(generados, inspeccionados, iteracion, output);
+    iteracion++;
     q.pop();
 
+    if (current->GetIndice() == goal) {
+      inspeccionados.push(current->GetIndice());
+      PrintProgress(generados, inspeccionados, iteracion, output);
+      std::vector<int> gen_elements;
+      while (current != nullptr) {
+        gen_elements.push_back(current->GetIndice());
+        current = current->GetParent();
+      }
+
+      for (size_t i = 0; i < gen_elements.size() - 1; i++) {
+        coste_total += costes_[gen_elements[i] - 1][gen_elements[i + 1] - 1];
+      }
+      
+      output << "Camino: ";
+      for (int i = gen_elements.size() - 1; i >= 0; i--) {
+        output << gen_elements[i];
+        if (i != 0) output << " - ";
+      }
+      output << std::endl;
+      output << "Costo: " << coste_total << std::endl;
+
+      return true;
+    }
+
     for (int i = 0; i < vertices_; i++) {
-      if (costes_[current - 1][i] != 0 && !visited[i]) {
-        q.push(i + 1);
-        visited[i] = 1;
+      if (costes_[current->GetIndice() - 1][i] != 0 && !current->CheckBranch(i + 1)) {
+        Nodo* aux = new Nodo(i + 1, current);
+        q.push(aux);
+        generados.push(i + 1);
       }
     }
+    inspeccionados.push(current->GetIndice());
   }
-  return true;
+  return false;
 }
 
 
-bool Grafo::DFS_search(int start, int goal, int& coste_total) {
+bool Grafo::DFS_search(int start, int goal, std::ofstream& output) {
+  int coste_total = 0;
   std::stack<int> path, generados, inspeccionados;
   std::vector<bool> visited(vertices_, 0);
   path.push(start);
@@ -73,7 +102,7 @@ bool Grafo::DFS_search(int start, int goal, int& coste_total) {
   visited[start - 1] = 1;
   int iteracion = 1;
 
-  if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion)) {
+  if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion, output)) {
     std::stack<int> temp_path = path;
     std::vector<int> gen_elements;
 
@@ -82,13 +111,13 @@ bool Grafo::DFS_search(int start, int goal, int& coste_total) {
       temp_path.pop();
     }
 
-    std::cout << "Camino: ";
+    output << "Camino: ";
     for (int i = gen_elements.size() - 1; i >= 0; i--) {
-      std::cout << gen_elements[i];
-      if (i != 0) std::cout << " - ";
+      output << gen_elements[i];
+      if (i != 0) output << " - ";
     }
-    std::cout << std::endl;
-    std::cout << "Costo: " << coste_total << std::endl;
+    output << std::endl;
+    output << "Costo: " << coste_total << std::endl;
     return true;
   } else {
     std::cout << "Camino no encontrado." << std::endl;
@@ -97,11 +126,11 @@ bool Grafo::DFS_search(int start, int goal, int& coste_total) {
 
 }
 
-bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion) {
+bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion , std::ostream& output) {
   int current = path.top(); // current  = 6
   //std::cout << "Current: " << current << std::endl;
 
-  PrintProgress(path, generados, inspeccionados, iteracion);
+  PrintProgress(generados, inspeccionados, iteracion, output);
   iteracion++;
   
   for (int j = 0; j < vertices_; j++) {
@@ -112,7 +141,7 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
 
       inspeccionados.push(path.top());
   if (current == goal){
-    PrintProgress(path, generados, inspeccionados, iteracion);
+    PrintProgress(generados, inspeccionados, iteracion, output);
     return true;
   }
   for (int i = 0; i < vertices_; i++) {
@@ -123,7 +152,7 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
       //std::cout << "-> inspeccionados push: " << path.top() << std::endl;
       path.push(i + 1);
       //std::cout << "-> path push: " << i + 1 << std::endl;
-      if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion)) {
+      if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion, output)) {
         coste_total += costes_[current - 1][i];
         return true;
       } else {
@@ -138,8 +167,10 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
   return false;
 }
 
-void Grafo::PrintProgress(const std::stack<int>& path, const std::stack<int>& generados, const std::stack<int>& inspeccionados, int& iteracion) const {
-  std::cout << "Iteración " << iteracion << std::endl;
+void Grafo::PrintProgress(const std::stack<int>& generados, const std::stack<int>& inspeccionados, int& iteracion, std::ostream& output) const {
+  output << "___________________________________________________________________________________________________________________________________" << std::endl;
+  output << std::endl;
+  output << "Iteración " << iteracion << std::endl;
   
   std::stack<int> temp_path = generados;
   std::vector<int> gen_elements;
@@ -149,12 +180,12 @@ void Grafo::PrintProgress(const std::stack<int>& path, const std::stack<int>& ge
     temp_path.pop();
   }
 
-  std::cout << "Nodos generados: ";
+  output << "Nodos generados: ";
   for (int i = gen_elements.size() - 1; i >= 0; i--) {
-      std::cout << gen_elements[i];
-      if (i != 0) std::cout << ", ";
+      output << gen_elements[i];
+      if (i != 0) output << ", ";
     }
-  std::cout << std::endl;
+  output << std::endl;
   // inspeccionados = path?? si no en que momento se agrega el nodo final? o no se agrega?
 
   temp_path = inspeccionados;
@@ -164,11 +195,10 @@ void Grafo::PrintProgress(const std::stack<int>& path, const std::stack<int>& ge
     temp_path.pop();
   }
 
-  std::cout << "Nodos inspeccionados: ";
+  output << "Nodos inspeccionados: ";
   for (int i = path_elements.size() - 1; i >= 0; i--) {
-      std::cout << path_elements[i];
-      if (i != 0) std::cout << ", ";
+      output << path_elements[i];
+      if (i != 0) output << ", ";
     }
-  std::cout << std::endl;
-  std::cout << std::endl;
+  output << std::endl;
 }

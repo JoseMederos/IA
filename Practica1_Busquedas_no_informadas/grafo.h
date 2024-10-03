@@ -16,22 +16,20 @@ class Grafo {
     }
 
     void Print() {
-      for (int i = 0; i < costes_.size(); i++) {
-        for (int j = 0; j < costes_.size(); j++) {
+      for (size_t i = 0; i < costes_.size(); i++) {
+        for (size_t j = 0; j < costes_.size(); j++) {
           std::cout << costes_[i][j] << " ";
         }
         std::cout << std::endl;
       }
     }
-    void AddCosts(std::string filename);
+    void AddCosts(std::string filename, std::ostream& output);
     int GetVertices() const;
     std::vector<std::vector<int>> GetCostes() const;
-    bool BFS_search(int start, int goal, int& coste_total);
-    bool DFS_search(int start, int goal, int& coste_total);
-    bool DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion);
-    void PrintProgress(const std::stack<int>& path, const std::stack<int>& generados, const std::stack<int>& inspeccionados, int& iteracion) const;
-
-
+    bool BFS_search(int start, int goal, std::ofstream& output);
+    bool DFS_search(int start, int goal, std::ofstream& output);
+    bool DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion, std::ostream& output);
+    void PrintProgress(const std::stack<int>& generados, const std::stack<int>& inspeccionados, int& iteracion, std::ostream& output) const;
 
   private:
     std::vector<std::vector<int>> costes_;
