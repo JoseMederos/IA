@@ -103,9 +103,6 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
 
   PrintProgress(path, generados, inspeccionados, iteracion);
   iteracion++;
-  if (current == goal){
-    return true;
-  }
   
   for (int j = 0; j < vertices_; j++) {
     if (costes_[current - 1][j] && !visited[j]) {
@@ -114,6 +111,10 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
   }
 
       inspeccionados.push(path.top());
+  if (current == goal){
+    PrintProgress(path, generados, inspeccionados, iteracion);
+    return true;
+  }
   for (int i = 0; i < vertices_; i++) {
     if (costes_[current - 1][i] != 0 && !visited[i]) {
       visited[i] = 1;
