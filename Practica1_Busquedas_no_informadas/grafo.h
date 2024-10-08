@@ -29,6 +29,7 @@ class Grafo {
     bool BFS_search(int start, int goal, std::ofstream& output);
     bool DFS_search(int start, int goal, std::ofstream& output);
     bool DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion, std::ostream& output);
+    bool MOD(int start, int goal, std::ofstream& output);
     void PrintProgress(const std::stack<int>& generados, const std::stack<int>& inspeccionados, int& iteracion, std::ostream& output) const;
 
   private:

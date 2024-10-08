@@ -1,5 +1,7 @@
 #include "grafo.h"
 #include "nodo.h"
+#include <cstdlib>
+#include <ctime>
 
 void Grafo::AddCosts(std::string filename, std::ostream& output) {
   std::fstream input;
@@ -128,7 +130,6 @@ bool Grafo::DFS_search(int start, int goal, std::ofstream& output) {
 
 bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<int>& inspeccionados, std::vector<bool>& visited, int goal, int& coste_total, int& iteracion , std::ostream& output) {
   int current = path.top(); // current  = 6
-  //std::cout << "Current: " << current << std::endl;
 
   PrintProgress(generados, inspeccionados, iteracion, output);
   iteracion++;
@@ -139,7 +140,7 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
     }
   }
 
-      inspeccionados.push(path.top());
+  inspeccionados.push(path.top());
   if (current == goal){
     PrintProgress(generados, inspeccionados, iteracion, output);
     return true;
@@ -147,21 +148,92 @@ bool Grafo::DFS(std::stack<int>& path, std::stack<int>& generados, std::stack<in
   for (int i = 0; i < vertices_; i++) {
     if (costes_[current - 1][i] != 0 && !visited[i]) {
       visited[i] = 1;
-      //generados.push(i + 1);
-      //std::cout << "-> generados push: " << i + 1 << std::endl;
-      //std::cout << "-> inspeccionados push: " << path.top() << std::endl;
       path.push(i + 1);
-      //std::cout << "-> path push: " << i + 1 << std::endl;
       if (DFS(path, generados, inspeccionados, visited, goal, coste_total, iteracion, output)) {
         coste_total += costes_[current - 1][i];
         return true;
       } else {
         visited[i] = 0;
-        //std::cout << "-> Pop: " << path.top() << std::endl;
         path.pop();
-        
-        //inspeccionados.pop();
       }
+    }
+  }
+  return false;
+}
+
+bool Grafo::MOD(int start, int goal, std::ofstream& output) {
+  std::srand(std::time(nullptr));
+
+  int coste_total = 0;
+  std::stack<int> path, generados, inspeccionados;
+  std::queue<Nodo*> q;
+  Nodo* root = new Nodo(start, nullptr);
+  q.push(root);
+  int iteracion = 1;
+  generados.push(start);
+  bool first = true;
+
+  
+  std::vector<int> children;
+
+  for (int i = 0; i < vertices_; i++) {
+    if (costes_[root->GetIndice() - 1][i] != 0) {
+      children.push_back(i + 1);
+    }
+  }
+
+  int attempts = 0;
+  
+  while (attempts < 10) {
+    int random_child;
+    if (!children.empty()) {
+      int random_child_index = std::rand() % children.size();
+      random_child = children[random_child_index];
+    }
+    
+    while (!q.empty()) {
+      Nodo* current = q.front();
+      PrintProgress(generados, inspeccionados, iteracion, output);
+      iteracion++;
+      q.pop();
+
+      if (current->GetIndice() == goal) {
+        inspeccionados.push(current->GetIndice());
+        PrintProgress(generados, inspeccionados, iteracion, output);
+        std::vector<int> gen_elements;
+        while (current != nullptr) {
+          gen_elements.push_back(current->GetIndice());
+          current = current->GetParent();
+        }
+
+        for (size_t i = 0; i < gen_elements.size() - 1; i++) {
+          coste_total += costes_[gen_elements[i] - 1][gen_elements[i + 1] - 1];
+        }
+        
+        output << "Camino: ";
+        for (int i = gen_elements.size() - 1; i >= 0; i--) {
+          output << gen_elements[i];
+          if (i != 0) output << " - ";
+        }
+        output << std::endl;
+        output << "Costo: " << coste_total << std::endl;
+
+        return true;
+      }
+
+      for (int i = 0; i < vertices_; i++) {
+        if (first) {
+          Nodo* aux = new Nodo(random_child, current);
+          q.push(aux);
+          generados.push(i + 1);
+          first = false;
+        } else if (costes_[current->GetIndice() - 1][i] != 0 && !current->CheckBranch(i + 1)) {
+          Nodo* aux = new Nodo(i + 1, current);
+          q.push(aux);
+          generados.push(i + 1);
+        }
+      }
+      inspeccionados.push(current->GetIndice());
     }
   }
   return false;
