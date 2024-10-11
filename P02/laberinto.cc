@@ -17,6 +17,18 @@ int Manhattan(int x1, int y1, int x2, int y2) {
   return abs(x1 - x2) + abs(y1 - y2);
 }
 
+// function to search priority queue
+bool findInPriorityQueue(std::priority_queue<Nodo>& pq, Nodo node) {
+  while (!pq.empty()) {
+    Nodo current = pq.top();
+    pq.pop();
+    if (current.pos == node.pos) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Laberinto::Laberinto(const char* filename) {
   std::ifstream inputFile;
   inputFile.open(filename);
@@ -38,21 +50,38 @@ Laberinto::Laberinto(const char* filename) {
     }
   }  
 }
-
+// INDEX (ROW, COLUMN)
+// M_1: START = (4, 0), END = (5, 9)
 void Laberinto::AStar() {
-  Nodo startNode = {start_, 0, Manhattan(start_.first, start_.second, end_.first, end_.second)};
+  Nodo startNode = {start_, 0, Manhattan(start_.first, start_.second, end_.first, end_.second), nullptr};
   std::priority_queue<Nodo> openSet;
   std::set<Nodo> closedSet;
   openSet.push(startNode);
 
   while (!openSet.empty()) {
+    // Selecciona el nodo de menor cose f(n)
     Nodo current = openSet.top();
     openSet.pop();
+
+    if (current.pos == end_) {
+      std::cout << "Camino encontrado" << std::endl;
+      Nodo* currentAux = &current;
+      while (currentAux != nullptr) {
+        map_[currentAux->pos.first][currentAux->pos.second] = 2;
+        currentAux = currentAux->parent;
+      }
+      Print();
+      return;
+    }
+
+    // Se inserta en los nodos cerrados
     closedSet.insert(current);
 
     std::vector<Position> neighbors = {
-      {0, 1}, {1, 0}, {0, -1}, {-1, 0},
-      {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+      {current.pos.first + 0, current.pos.second + 1}, {current.pos.first + 1, current.pos.second + 1}, 
+      {current.pos.first + 1, current.pos.second + 0}, {current.pos.first + 1, current.pos.second - 1},
+      {current.pos.first + 0, current.pos.second - 1}, {current.pos.first - 1, current.pos.second - 1},
+      {current.pos.first - 1, current.pos.second + 0}, {current.pos.first - 1, current.pos.second + 1}
     };
 
     for (size_t i = 0; i < neighbors.size(); i++) {
@@ -62,11 +91,33 @@ void Laberinto::AStar() {
         continue;
       }
 
-      if(map_[aux.pos.first][aux.pos.second] == 0 || closedSet.count(aux)) {
+      if(map_[aux.pos.first][aux.pos.second] != 0) {
         continue;
       }
+      
+      // Si el nodo no esta ni en A, ni en C
+      if (!findInPriorityQueue(openSet, aux) && !closedSet.count(aux)) {
+        // si indice es divisible por 2 el movimiento es vertical o horizontal, gracias al vector neighbors
+        if (i % 2 == 0) {
+          aux.gCost = current.gCost + 5;
+        } else {
+          aux.gCost = current.gCost + 7;
+        }
+        aux.hCost = Manhattan(aux.pos.first, aux.pos.second, end_.first, end_.second);
+        aux.parent = &current;
+        openSet.push(aux);
+      } else if (findInPriorityQueue(openSet, aux)) {
+        // Si el nodo esta en A
+        Nodo current = openSet.top();
+        if (aux.gCost < current.gCost) {
+          current.gCost = aux.gCost;
+          current.parent = aux.parent;
+        }
+      }
+
     }
   }
+  std::cout << "No existe camino" << std::endl;
 
 }
 

@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
   Laberinto laberinto(filename);
 
   std::cout << laberinto << std::endl;
+  laberinto.AStar();
 
   
   return 0;
