@@ -22,6 +22,10 @@ int Manhattan(int x1, int y1, int x2, int y2) {
   return (abs(x2 - x1) + abs(y2 - y1)) * 3;
 }
 
+int ManhattanV2(int x1, int y1, int x2, int y2) {
+  return (abs(x2 - x1) + abs(y2 - y1)) * 4;
+}
+
 // function to search priority queue
 bool findInPriorityQueue(std::priority_queue<Nodo> pq, Nodo node) {
   while (!pq.empty()) {
@@ -71,7 +75,7 @@ void Laberinto::ChangeEnd(Position end) {
 // INDEX (ROW, COLUMN)
 // M_1: START = (4, 0), END = (5, 9)
 std::string Laberinto::AStar() {
-  Nodo startNode = {start_, 0, Manhattan(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
+  Nodo startNode = {start_, 0, ManhattanV2(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
   std::string output = "";
   std::priority_queue<Nodo> openSet;
   std::set<Position> closedSet;
@@ -132,6 +136,8 @@ std::string Laberinto::AStar() {
         }
       }
       output += "\n";
+      // coste del camino
+      output += "Coste del camino: " + std::to_string(current.gCost) + "\n";
       output = solucion_ + output;
       return output;
     }
@@ -168,7 +174,7 @@ std::string Laberinto::AStar() {
           front.gCost = current.gCost + 7;
         }
         
-        front.hCost = Manhattan(front.pos.first, front.pos.second, end_.first, end_.second);
+        front.hCost = ManhattanV2(front.pos.first, front.pos.second, end_.first, end_.second);
         parentMap[front.pos] = current.pos;
 
         //std::cout << "Nodo insertado: " << front.pos.first << "," << front.pos.second << " gCost: " << front.gCost << " hCost: " << front.hCost << " fCost: " << front.fCost() << std::endl;
