@@ -26,7 +26,6 @@ int ManhattanV2(int x1, int y1, int x2, int y2) {
   return (abs(x2 - x1) + abs(y2 - y1)) * 4;
 }
 
-// function to search priority queue
 bool findInPriorityQueue(std::priority_queue<Nodo> pq, Nodo node) {
   while (!pq.empty()) {
     Nodo current = pq.top();
@@ -38,7 +37,7 @@ bool findInPriorityQueue(std::priority_queue<Nodo> pq, Nodo node) {
   return false;
 }
 
-Laberinto::Laberinto(const char* filename) {
+Laberinto::Laberinto(const char* filename, HFunction hfunc) : hFunction_(hfunc) {
   std::ifstream inputFile;
   inputFile.open(filename);
   int M, N;
@@ -75,7 +74,7 @@ void Laberinto::ChangeEnd(Position end) {
 // INDEX (ROW, COLUMN)
 // M_1: START = (4, 0), END = (5, 9)
 std::string Laberinto::AStar() {
-  Nodo startNode = {start_, 0, ManhattanV2(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
+  Nodo startNode = {start_, 0, hFunction_(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
   std::string output = "";
   std::priority_queue<Nodo> openSet;
   std::set<Position> closedSet;
@@ -136,9 +135,12 @@ std::string Laberinto::AStar() {
         }
       }
       output += "\n";
-      // coste del camino
+
       output += "Coste del camino: " + std::to_string(current.gCost) + "\n";
       output = solucion_ + output;
+
+      output += "\nN. de nodos generados: " + std::to_string(openSet.size() + closedSet.size());
+      output += "\nN. de nofos inspeccionados : " + std::to_string(closedSet.size());
       return output;
     }
 
@@ -167,14 +169,13 @@ std::string Laberinto::AStar() {
       // Si el nodo no esta ni en A, ni en C
       if (!findInPriorityQueue(openSet, front) && !closedSet.count(front.pos)) {
         // si indice es divisible por 2 el movimiento es vertical o horizontal, gracias al vector neighbors
-        //print the values going into Manhattan function and the result
         if (i % 2 == 0) {
           front.gCost = current.gCost + 5;
         } else {
           front.gCost = current.gCost + 7;
         }
         
-        front.hCost = ManhattanV2(front.pos.first, front.pos.second, end_.first, end_.second);
+        front.hCost = hFunction_(front.pos.first, front.pos.second, end_.first, end_.second);
         parentMap[front.pos] = current.pos;
 
         //std::cout << "Nodo insertado: " << front.pos.first << "," << front.pos.second << " gCost: " << front.gCost << " hCost: " << front.hCost << " fCost: " << front.fCost() << std::endl;
