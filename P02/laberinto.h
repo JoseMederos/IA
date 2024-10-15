@@ -10,7 +10,7 @@ typedef std::pair<int, int> Position;
 typedef std::function<int(int, int, int, int)> HFunction;
 
 int Manhattan(int x1, int y1, int x2, int y2);
-int ManhattanV2(int x1, int y1, int x2, int y2);
+int Euclidean(int x1, int y1, int x2, int y2);
 
 class Laberinto
 {
@@ -23,7 +23,7 @@ class Laberinto
     std::string Print(std::set<Position> pathSet) const;
 
 
-    std::string AStar();
+    std::string AStar(std::string &tabla);
 
     friend std::ostream& operator<<(std::ostream&, const Laberinto&);
   private:

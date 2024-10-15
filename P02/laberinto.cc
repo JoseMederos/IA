@@ -4,6 +4,8 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include <iomanip>
+#include <math.h>
 #include "laberinto.h"
 
 struct Nodo {
@@ -22,8 +24,8 @@ int Manhattan(int x1, int y1, int x2, int y2) {
   return (abs(x2 - x1) + abs(y2 - y1)) * 3;
 }
 
-int ManhattanV2(int x1, int y1, int x2, int y2) {
-  return (abs(x2 - x1) + abs(y2 - y1)) * 4;
+int Euclidean(int x1, int y1, int x2, int y2) {
+  return static_cast<int>(sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2)) * 3);
 }
 
 bool findInPriorityQueue(std::priority_queue<Nodo> pq, Nodo node) {
@@ -73,13 +75,15 @@ void Laberinto::ChangeEnd(Position end) {
 
 // INDEX (ROW, COLUMN)
 // M_1: START = (4, 0), END = (5, 9)
-std::string Laberinto::AStar() {
+std::string Laberinto::AStar(std::string &tabla) {
   Nodo startNode = {start_, 0, hFunction_(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
   std::string output = "";
   std::priority_queue<Nodo> openSet;
   std::set<Position> closedSet;
   std::map<Position, Position> parentMap;
+  std::vector<Position> nodosGen, nodosIns;
   openSet.push(startNode);
+  nodosGen.push_back(startNode.pos);
 
   int interation = 0;
 
@@ -91,20 +95,17 @@ std::string Laberinto::AStar() {
     } else {
       output += "\nIteracion: " + std::to_string(interation) + " Nodo actual: " + std::to_string(current.pos.first) + "," + std::to_string(current.pos.second) + "\n";
     }
-    output += "OpenSet:\n";
 
-    std::priority_queue<Nodo> tempQueue;
-    while (!openSet.empty()) {
-      Nodo top = openSet.top();
-      openSet.pop();
-      output += "  Nodo: " + std::to_string(top.pos.first) + "," + std::to_string(top.pos.second) + "\n";
-      tempQueue.push(top);
+    output += "Nodos Generados:\n";
+    for (size_t i = 0; i < nodosGen.size(); i++) {
+      output += "(" + std::to_string(nodosGen[i].first) + "," + std::to_string(nodosGen[i].second) + ") ";
     }
-    openSet = tempQueue;
-    output += "ClosedSet: \n";
-    for (auto it = closedSet.begin(); it != closedSet.end(); it++) {
-      output+= "  Nodo: " + std::to_string(it->first) + "," + std::to_string(it->second) + "\n";
+    output += "\nNodos Inspeccionados:\n";
+    for (size_t i = 0; i < nodosIns.size(); i++) {
+      output += "(" + std::to_string(nodosIns[i].first) + "," + std::to_string(nodosIns[i].second) + ") ";
     }
+    output += "\n";
+    output += "_________________________________________________________________________________________________________";
     
     // Selecciona el nodo de menor cose f(n)
     current = openSet.top();
@@ -113,9 +114,20 @@ std::string Laberinto::AStar() {
 
 
     if (current.pos == end_) {
+      nodosIns.push_back(current.pos);
+      interation++;
       output += "\nIteracion: " + std::to_string(interation) + " Nodo actual: " + std::to_string(current.pos.first) + "," + std::to_string(current.pos.second) + "\n";
 
-
+      output += "Nodos Generados:\n";
+      for (size_t i = 0; i < nodosGen.size(); i++) {
+        output += "(" + std::to_string(nodosGen[i].first) + "," + std::to_string(nodosGen[i].second) + ") ";
+      }
+      output += "\nNodos Inspeccionados:\n";
+      for (size_t i = 0; i < nodosIns.size(); i++) {
+        output += "(" + std::to_string(nodosIns[i].first) + "," + std::to_string(nodosIns[i].second) + ") ";
+      }
+      output += "\n";
+      output += "_________________________________________________________________________________________________________";
       output += "\nCamino encontrado\n\n";
       
       std::vector<Position> path;
@@ -139,13 +151,25 @@ std::string Laberinto::AStar() {
       output += "Coste del camino: " + std::to_string(current.gCost) + "\n";
       output = solucion_ + output;
 
-      output += "\nN. de nodos generados: " + std::to_string(openSet.size() + closedSet.size());
-      output += "\nN. de nofos inspeccionados : " + std::to_string(closedSet.size());
+      output += "\n";
+      std::stringstream tabla_edit;
+
+      tabla_edit << std::left << std::setw(10) << rows_ 
+            << std::setw(10) << columns_ 
+            << std::setw(10) << "(" + std::to_string(start_.first) + "," + std::to_string(start_.second) + ")" 
+            << std::setw(10) << "(" + std::to_string(end_.first) + "," + std::to_string(end_.second) + ")" 
+            << std::setw(10) << current.gCost 
+            << std::setw(15) << nodosGen.size() 
+            << std::setw(15) << nodosIns.size() << "\n";
+      tabla += tabla_edit.str();
+
+      output += tabla;
       return output;
     }
 
     // Se inserta en los nodos cerrados
     closedSet.insert(current.pos);
+    nodosIns.push_back(current.pos);
 
     std::vector<Position> neighbors = {
       {current.pos.first + 0, current.pos.second + 1}, {current.pos.first + 1, current.pos.second + 1}, 
@@ -159,6 +183,7 @@ std::string Laberinto::AStar() {
       if (front.pos.first < 0 || front.pos.first >= rows_ || front.pos.second < 0 || front.pos.second >= columns_) {
         continue;
       }
+      // Revisa si el camino es transitable
       if(map_[front.pos.first][front.pos.second] == 1) {
         continue;
       }
@@ -181,6 +206,7 @@ std::string Laberinto::AStar() {
         //std::cout << "Nodo insertado: " << front.pos.first << "," << front.pos.second << " gCost: " << front.gCost << " hCost: " << front.hCost << " fCost: " << front.fCost() << std::endl;
 
         openSet.push(front);
+        nodosGen.push_back(front.pos);
       } else if (findInPriorityQueue(openSet, front)) {
         // Si el nodo esta en A
         if (i % 2 == 0) {
