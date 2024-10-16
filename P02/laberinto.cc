@@ -160,7 +160,7 @@ std::string Laberinto::AStar(std::string &tabla) {
             << std::setw(15) << nodosIns.size() << "\n";
       tabla += tabla_edit.str();
 
-      output += tabla;
+      output = tabla + output;
       return output;
     }
 

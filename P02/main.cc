@@ -2,10 +2,6 @@
 #include <thread>
 #include <fstream>
 #include "laberinto.h"
-// DUDAS
-// Implementacion?
-// Complejidad de la heuristica alterna?
-// El codigo tiene que hacer la busqueda con los 3 grafos y mostrar la tabla completa? Con las dos heuristicas? O es solo en la memeoria?
 
 int main(int argc, char *argv[]) {
   std::ofstream output("output.txt");
@@ -18,24 +14,32 @@ int main(int argc, char *argv[]) {
       laberintos.push_back(laberinto1);
       laberintos.push_back(laberinto2);
     }
+    std::cout << "¿Desea cambiar el inicio del laberinto? [s][n]: " << std::endl;
+    char changeStart;
+    std::cin >> changeStart;
+
+    int x_s, y_s;
+    if (changeStart == 's') {
+      std::cout << "Ingrese la nueva posición de inicio: " << std::endl;
+      std::cin >> x_s >> y_s;
+    }
+    
+    std::cout << "¿Desea cambiar el final del laberinto ? [s][n]: " << std::endl;
+    char changeEnd;
+    std::cin >> changeEnd;
+
+    int x_e, y_e;
+    if (changeEnd == 's') {
+      std::cout << "Ingrese la nueva posición de final: " << std::endl;
+      std::cin >> x_e >> y_e;
+    }
+
     for (size_t i = 0; i < laberintos.size(); i++) {
-      std::cout << "¿Desea cambiar el inicio del laberinto " << i + 1 << "? [s][n]: " << std::endl;
-      char changeStart;
-      std::cin >> changeStart;
       if (changeStart == 's') {
-        int x, y;
-        std::cout << "Ingrese la nueva posición de inicio: " << std::endl;
-        std::cin >> x >> y;
-        laberintos[i].ChangeStart(Position(x, y));
+        laberintos[i].ChangeStart(Position(x_s, y_s));
       }
-      std::cout << "¿Desea cambiar el final del laberinto " << i + 1 << "? [s][n]: " << std::endl;
-      char changeEnd;
-      std::cin >> changeEnd;
       if (changeEnd == 's') {
-        int x, y;
-        std::cout << "Ingrese la nueva posición de final: " << std::endl;
-        std::cin >> x >> y;
-        laberintos[i].ChangeEnd(Position(x, y));
+        laberintos[i].ChangeEnd(Position(x_e, y_e));
       }
       output << "LABERINTO " << i + 1 << std::endl;
       output << laberintos[i].AStar(tabla) << std::endl;
