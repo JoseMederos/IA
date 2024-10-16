@@ -12,12 +12,9 @@ struct Nodo {
   Position pos;
   int gCost; // Costo desde el inicio hasta este nodo
   int hCost; // Costo estimado desde este nodo hasta el objetivo
-  Position parentPos;
   int fCost() const { return gCost + hCost; }
   bool operator<(const Nodo& other) const { return fCost() > other.fCost(); }
-  bool operator==(const Nodo& other) const {
-    return pos == other.pos; 
-  }
+  bool operator==(const Nodo& other) const { return pos == other.pos; }
 };
 
 int Manhattan(int x1, int y1, int x2, int y2) {
@@ -76,7 +73,7 @@ void Laberinto::ChangeEnd(Position end) {
 // INDEX (ROW, COLUMN)
 // M_1: START = (4, 0), END = (5, 9)
 std::string Laberinto::AStar(std::string &tabla) {
-  Nodo startNode = {start_, 0, hFunction_(start_.first, start_.second, end_.first, end_.second), {-1, -1}};
+  Nodo startNode = {start_, 0, hFunction_(start_.first, start_.second, end_.first, end_.second)};
   std::string output = "";
   std::priority_queue<Nodo> openSet;
   std::set<Position> closedSet;
